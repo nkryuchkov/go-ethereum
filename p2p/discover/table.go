@@ -516,6 +516,7 @@ func (tab *Table) addSeenNode(n *node) {
 	}
 
 	// Add to end of bucket:
+	tab.log.Debug("addSeenNode: adding entry to bucket", n.ID().String())
 	b.entries = append(b.entries, n)
 	b.replacements = deleteNode(b.replacements, n)
 	n.addedAt = time.Now()
@@ -560,6 +561,7 @@ func (tab *Table) addVerifiedNode(n *node) {
 	}
 
 	// Add to front of bucket.
+	tab.log.Debug("addVerifiedNode: adding entry to bucket", n.ID().String())
 	b.entries, _ = pushNode(b.entries, n, bucketSize)
 	b.replacements = deleteNode(b.replacements, n)
 	n.addedAt = time.Now()
@@ -635,6 +637,7 @@ func (tab *Table) replace(b *bucket, last *node) *node {
 	}
 	r := b.replacements[tab.rand.Intn(len(b.replacements))]
 	b.replacements = deleteNode(b.replacements, r)
+	tab.log.Debug("replace: replacing last entry in bucket", r.ID().String())
 	b.entries[len(b.entries)-1] = r
 	tab.removeIP(b, last.IP())
 	return r
@@ -655,7 +658,9 @@ func (tab *Table) bumpInBucket(b *bucket, n *node) bool {
 				}
 			}
 			// Move it to the front.
+			tab.log.Debug("bumpInBucket: shifting all entries in bucket", n.ID().String())
 			copy(b.entries[1:], b.entries[:i])
+			tab.log.Debug("bumpInBucket: replacing first entry in bucket", n.ID().String())
 			b.entries[0] = n
 			return true
 		}
@@ -669,6 +674,7 @@ func (tab *Table) deleteInBucket(b *bucket, n *node) {
 	if !contains(b.entries, n.ID()) {
 		return
 	}
+	tab.log.Debug("deleteInBucket: deleting entry from bucket", n.ID().String())
 	b.entries = deleteNode(b.entries, n)
 	tab.removeIP(b, n.IP())
 	if tab.nodeRemovedHook != nil {
