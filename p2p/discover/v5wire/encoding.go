@@ -24,6 +24,7 @@ import (
 	crand "crypto/rand"
 	"crypto/sha256"
 	"encoding/binary"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"hash"
@@ -642,7 +643,7 @@ func (c *Codec) decryptMessage(input, nonce, headerData, readKey []byte) (Packet
 // The packetLen here is the length remaining after the static header.
 func (h *StaticHeader) checkValid(packetLen int, protocolID [6]byte) error {
 	if h.ProtocolID != protocolID {
-		return errInvalidHeader
+		return fmt.Errorf("%w, got %v, want %v", errInvalidHeader, hex.EncodeToString(protocolID[:]), hex.EncodeToString(h.ProtocolID[:]))
 	}
 	if h.Version < minVersion {
 		return errMinVersion
