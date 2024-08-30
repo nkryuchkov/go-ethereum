@@ -146,6 +146,11 @@ func ListenV5(conn UDPConn, ln *enode.LocalNode, cfg Config) (*UDPv5, error) {
 func newUDPv5(conn UDPConn, ln *enode.LocalNode, cfg Config) (*UDPv5, error) {
 	closeCtx, cancelCloseCtx := context.WithCancel(context.Background())
 	cfg = cfg.withDefaults()
+	if cfg.V5ProtocolID == nil {
+		cfg.Log.Debug("protocol ID is nil")
+	} else {
+		cfg.Log.Debug("protocol ID is %v", "protocol_id", *cfg.V5ProtocolID)
+	}
 	t := &UDPv5{
 		// static fields
 		conn:         newMeteredConn(conn),
