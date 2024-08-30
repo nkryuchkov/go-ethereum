@@ -145,6 +145,8 @@ var (
 // Codec encodes and decodes Discovery v5 packets.
 // This type is not safe for concurrent use.
 type Codec struct {
+	log log.Logger
+
 	sha256     hash.Hash
 	localnode  *enode.LocalNode
 	privkey    *ecdsa.PrivateKey
@@ -162,9 +164,16 @@ type Codec struct {
 	reader bytes.Reader
 }
 
+func WithLogger(log log.Logger) func(c *Codec) {
+	return func(c *Codec) {
+		c.log = log
+	}
+}
+
 // NewCodec creates a wire codec.
-func NewCodec(ln *enode.LocalNode, key *ecdsa.PrivateKey, clock mclock.Clock, protocolID *[6]byte) *Codec {
+func NewCodec(ln *enode.LocalNode, key *ecdsa.PrivateKey, clock mclock.Clock, protocolID *[6]byte, opts ...func(*Codec)) *Codec {
 	c := &Codec{
+		log:        log.New(),
 		sha256:     sha256.New(),
 		localnode:  ln,
 		privkey:    key,
@@ -172,6 +181,11 @@ func NewCodec(ln *enode.LocalNode, key *ecdsa.PrivateKey, clock mclock.Clock, pr
 		protocolID: DefaultProtocolID,
 		decbuf:     make([]byte, maxPacketSize),
 	}
+
+	for _, opt := range opts {
+		opt(c)
+	}
+
 	if protocolID != nil {
 		c.protocolID = *protocolID
 	}
@@ -453,18 +467,18 @@ func (c *Codec) Decode(inputData []byte, addr string) (src enode.ID, n *enode.No
 	copy(head.IV[:], input[:sizeofMaskingIV])
 	mask := head.mask(c.localnode.ID())
 	staticHeader := input[sizeofMaskingIV:sizeofStaticPacketData]
-	log.Debug("staticHeader before xor", "str", string(staticHeader), "hex", hex.EncodeToString(staticHeader))
+	c.log.Debug("staticHeader before xor", "str", string(staticHeader), "hex", hex.EncodeToString(staticHeader))
 	mask.XORKeyStream(staticHeader, staticHeader)
-	log.Debug("staticHeader after xor", "str", string(staticHeader), "hex", hex.EncodeToString(staticHeader))
+	c.log.Debug("staticHeader after xor", "str", string(staticHeader), "hex", hex.EncodeToString(staticHeader))
 
 	// Decode and verify the static header.
 	c.reader.Reset(staticHeader)
 	if err := binary.Read(&c.reader, binary.BigEndian, &head.StaticHeader); err != nil {
-		log.Debug("staticHeader binary.Read failed:", "err", err)
+		c.log.Debug("staticHeader binary.Read failed:", "err", err)
 	}
 
-	log.Debug("staticHeader &head.StaticHeader", "v", &head.StaticHeader)
-	log.Debug("staticHeader head", "v", head)
+	c.log.Debug("staticHeader &head.StaticHeader", "v", &head.StaticHeader)
+	c.log.Debug("staticHeader head", "v", head)
 
 	remainingInput := len(input) - sizeofStaticPacketData
 	if err := head.checkValid(remainingInput, c.protocolID, head.src); err != nil {
