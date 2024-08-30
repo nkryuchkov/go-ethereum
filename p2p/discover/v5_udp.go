@@ -21,6 +21,7 @@ import (
 	"context"
 	"crypto/ecdsa"
 	crand "crypto/rand"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"io"
@@ -149,7 +150,11 @@ func newUDPv5(conn UDPConn, ln *enode.LocalNode, cfg Config) (*UDPv5, error) {
 	if cfg.V5ProtocolID == nil {
 		cfg.Log.Debug("protocol ID is nil")
 	} else {
-		cfg.Log.Debug("protocol ID is %v", "protocol_id", *cfg.V5ProtocolID)
+		id := *cfg.V5ProtocolID
+		cfg.Log.Debug("protocol ID",
+			"protocol_id", id,
+			"protocol_id_str", hex.EncodeToString(id[:]),
+		)
 	}
 	t := &UDPv5{
 		// static fields
@@ -178,6 +183,13 @@ func newUDPv5(conn UDPConn, ln *enode.LocalNode, cfg Config) (*UDPv5, error) {
 		closeCtx:       closeCtx,
 		cancelCloseCtx: cancelCloseCtx,
 	}
+
+	id := t.codec.(*v5wire.Codec).ProtocolID()
+	cfg.Log.Debug("codec protocol ID",
+		"protocol_id", id,
+		"protocol_id_str", hex.EncodeToString(id[:]),
+	)
+
 	t.talk = newTalkSystem(t)
 	tab, err := newMeteredTable(t, t.db, cfg)
 	if err != nil {

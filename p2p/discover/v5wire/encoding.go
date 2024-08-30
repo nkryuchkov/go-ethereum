@@ -177,6 +177,10 @@ func NewCodec(ln *enode.LocalNode, key *ecdsa.PrivateKey, clock mclock.Clock, pr
 	return c
 }
 
+func (c *Codec) ProtocolID() [6]byte {
+	return c.protocolID
+}
+
 // Encode encodes a packet to a node. 'id' and 'addr' specify the destination node. The
 // 'challenge' parameter should be the most recently received WHOAREYOU packet from that
 // node.
