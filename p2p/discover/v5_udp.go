@@ -729,7 +729,7 @@ func (t *UDPv5) handlePacket(rawpacket []byte, fromAddr *net.UDPAddr) error {
 		// Handshake succeeded, add to table.
 		t.tab.addSeenNode(wrapNode(fromNode))
 	} else {
-		t.log.Debug("Correct discv5 packet with fromNode", "id", fromID, "addr", addr)
+		t.log.Debug("Correct discv5 packet without fromNode", "id", fromID, "addr", addr)
 	}
 	if packet.Kind() != v5wire.WhoareyouPacket {
 		t.log.Debug("Correct discv5 packet, not WhoareyouPacket", "id", fromID, "addr", addr)

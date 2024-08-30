@@ -30,6 +30,7 @@ import (
 	"hash"
 
 	"github.com/ethereum/go-ethereum/common/mclock"
+	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/p2p/enode"
 	"github.com/ethereum/go-ethereum/p2p/enr"
 	"github.com/ethereum/go-ethereum/rlp"
@@ -452,18 +453,18 @@ func (c *Codec) Decode(inputData []byte, addr string) (src enode.ID, n *enode.No
 	copy(head.IV[:], input[:sizeofMaskingIV])
 	mask := head.mask(c.localnode.ID())
 	staticHeader := input[sizeofMaskingIV:sizeofStaticPacketData]
-	fmt.Println("staticHeader before xor", string(staticHeader), hex.EncodeToString(staticHeader))
+	log.Debug("staticHeader before xor", "str", string(staticHeader), "hex", hex.EncodeToString(staticHeader))
 	mask.XORKeyStream(staticHeader, staticHeader)
-	fmt.Println("staticHeader after xor", string(staticHeader), hex.EncodeToString(staticHeader))
+	log.Debug("staticHeader after xor", "str", string(staticHeader), "hex", hex.EncodeToString(staticHeader))
 
 	// Decode and verify the static header.
 	c.reader.Reset(staticHeader)
 	if err := binary.Read(&c.reader, binary.BigEndian, &head.StaticHeader); err != nil {
-		fmt.Println("staticHeader binary.Read failed:", err)
+		log.Debug("staticHeader binary.Read failed:", "err", err)
 	}
 
-	fmt.Println("staticHeader &head.StaticHeader", &head.StaticHeader)
-	fmt.Println("staticHeader head", head)
+	log.Debug("staticHeader &head.StaticHeader", "v", &head.StaticHeader)
+	log.Debug("staticHeader head", "v", head)
 
 	remainingInput := len(input) - sizeofStaticPacketData
 	if err := head.checkValid(remainingInput, c.protocolID, head.src); err != nil {
