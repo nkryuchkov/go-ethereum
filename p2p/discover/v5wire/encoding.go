@@ -452,13 +452,17 @@ func (c *Codec) Decode(inputData []byte, addr string) (src enode.ID, n *enode.No
 	copy(head.IV[:], input[:sizeofMaskingIV])
 	mask := head.mask(c.localnode.ID())
 	staticHeader := input[sizeofMaskingIV:sizeofStaticPacketData]
-	fmt.Println("staticHeader before xor", hex.EncodeToString(staticHeader))
 	mask.XORKeyStream(staticHeader, staticHeader)
-	fmt.Println("staticHeader after xor", hex.EncodeToString(staticHeader))
+	fmt.Println("staticHeader after xor", staticHeader, hex.EncodeToString(staticHeader))
 
 	// Decode and verify the static header.
 	c.reader.Reset(staticHeader)
-	binary.Read(&c.reader, binary.BigEndian, &head.StaticHeader)
+	if err := binary.Read(&c.reader, binary.BigEndian, &head.StaticHeader); err != nil {
+		fmt.Println("staticHeader binary.Read failed:", err)
+	}
+
+	fmt.Println("staticHeader &head.StaticHeader", &head.StaticHeader)
+
 	remainingInput := len(input) - sizeofStaticPacketData
 	if err := head.checkValid(remainingInput, c.protocolID, head.src); err != nil {
 		return enode.ID{}, nil, nil, err
