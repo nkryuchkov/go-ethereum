@@ -453,7 +453,7 @@ func (c *Codec) Decode(inputData []byte, addr string) (src enode.ID, n *enode.No
 	mask := head.mask(c.localnode.ID())
 	staticHeader := input[sizeofMaskingIV:sizeofStaticPacketData]
 	mask.XORKeyStream(staticHeader, staticHeader)
-	fmt.Println("staticHeader after xor", staticHeader, hex.EncodeToString(staticHeader))
+	fmt.Println("staticHeader after xor", string(staticHeader), hex.EncodeToString(staticHeader))
 
 	// Decode and verify the static header.
 	c.reader.Reset(staticHeader)
@@ -462,6 +462,7 @@ func (c *Codec) Decode(inputData []byte, addr string) (src enode.ID, n *enode.No
 	}
 
 	fmt.Println("staticHeader &head.StaticHeader", &head.StaticHeader)
+	fmt.Println("staticHeader head", head)
 
 	remainingInput := len(input) - sizeofStaticPacketData
 	if err := head.checkValid(remainingInput, c.protocolID, head.src); err != nil {
