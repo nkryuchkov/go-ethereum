@@ -458,7 +458,7 @@ func (c *Codec) Decode(inputData []byte, addr string) (src enode.ID, n *enode.No
 	c.reader.Reset(staticHeader)
 	binary.Read(&c.reader, binary.BigEndian, &head.StaticHeader)
 	remainingInput := len(input) - sizeofStaticPacketData
-	if err := head.checkValid(remainingInput, c.protocolID); err != nil {
+	if err := head.checkValid(remainingInput, c.protocolID, head.src); err != nil {
 		return enode.ID{}, nil, nil, err
 	}
 
@@ -645,12 +645,14 @@ func (c *Codec) decryptMessage(input, nonce, headerData, readKey []byte) (Packet
 
 // checkValid performs some basic validity checks on the header.
 // The packetLen here is the length remaining after the static header.
-func (h *StaticHeader) checkValid(packetLen int, protocolID [6]byte) error {
+func (h *StaticHeader) checkValid(packetLen int, protocolID [6]byte, src enode.ID) error {
 	if h.ProtocolID != protocolID {
-		return fmt.Errorf("%w, got protocol %v (%v), want %v (%v)",
+		return fmt.Errorf("%w, got protocol %v (%v), want %v (%v), from %v",
 			errInvalidHeader,
 			string(protocolID[:]), hex.EncodeToString(protocolID[:]),
-			string(h.ProtocolID[:]), hex.EncodeToString(h.ProtocolID[:]))
+			string(h.ProtocolID[:]), hex.EncodeToString(h.ProtocolID[:]),
+			src.String(),
+		)
 	}
 	if h.Version < minVersion {
 		return errMinVersion

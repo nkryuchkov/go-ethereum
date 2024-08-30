@@ -153,7 +153,8 @@ func newUDPv5(conn UDPConn, ln *enode.LocalNode, cfg Config) (*UDPv5, error) {
 		id := *cfg.V5ProtocolID
 		cfg.Log.Debug("protocol ID",
 			"protocol_id", id,
-			"protocol_id_str", hex.EncodeToString(id[:]),
+			"protocol_id_hex", hex.EncodeToString(id[:]),
+			"protocol_id_str", string(id[:]),
 		)
 	}
 	t := &UDPv5{
@@ -187,7 +188,8 @@ func newUDPv5(conn UDPConn, ln *enode.LocalNode, cfg Config) (*UDPv5, error) {
 	id := t.codec.(*v5wire.Codec).ProtocolID()
 	cfg.Log.Debug("codec protocol ID",
 		"protocol_id", id,
-		"protocol_id_str", hex.EncodeToString(id[:]),
+		"protocol_id_hex", hex.EncodeToString(id[:]),
+		"protocol_id_str", string(id[:]),
 	)
 
 	t.talk = newTalkSystem(t)
