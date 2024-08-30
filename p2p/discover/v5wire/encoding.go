@@ -452,6 +452,7 @@ func (c *Codec) Decode(inputData []byte, addr string) (src enode.ID, n *enode.No
 	copy(head.IV[:], input[:sizeofMaskingIV])
 	mask := head.mask(c.localnode.ID())
 	staticHeader := input[sizeofMaskingIV:sizeofStaticPacketData]
+	fmt.Println("staticHeader before xor", string(staticHeader), hex.EncodeToString(staticHeader))
 	mask.XORKeyStream(staticHeader, staticHeader)
 	fmt.Println("staticHeader after xor", string(staticHeader), hex.EncodeToString(staticHeader))
 
